@@ -23,9 +23,9 @@ A docker compose service "queues" run a script, that consume requests and send r
 Script params should be placed in `.env` file (can be specified in docker-compose config) or in `docker-compose.yaml` directly.
 
 ```lombok.config
-RABBITMQ_USER=user
-RABBITMQ_PASSWORD=password
-RABBITMQ_HOST=localhost
+RABBITMQ_USER=admin
+RABBITMQ_PASSWORD=pass
+RABBITMQ_HOST=rabbitmqServer
 RABBITMQ_PORT=5672
 
 RABBITMQ_CONSUME_QUEUE=to_ai

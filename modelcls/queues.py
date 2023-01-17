@@ -50,7 +50,8 @@ def main():
         try:
             data = json.loads(body)
             logger.debug('Get data:', data)
-            image = base64.b64decode(data['image'])
+            image = data['image'].encode('utf-8')
+            image = base64.b64decode(image)
 
             label = predict(image)
             logger.debug('Predict label:', data)
@@ -75,4 +76,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('Interrupted')
         sys.exit(0)
-
