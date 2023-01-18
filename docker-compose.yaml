@@ -47,14 +47,14 @@ services:
     networks:
       - rabbitnetwork
 
-  platform_queues:
+  platform_app:
     environment:
       IMAGE_FOLDER_PATH: './images_files'
       DATABASE_URL: "sqlite:///./db/sql_app.db"
     env_file:
       - .env
     build: platform_app
-    entrypoint: [ "python", "queues.py" ]
+    entrypoint: [ "python", "platform_app.py" ]
     restart: always
     depends_on:
       rabbitmqServer:
@@ -66,11 +66,8 @@ services:
     networks:
       - rabbitnetwork
     volumes:
-      - db:/src/platform_app/db/
+      - ./platform_app/db/sql_app.db:/src/platform_app/db/sql_app.db
 
 networks:
   rabbitnetwork:
     driver: bridge
-
-volumes:
-  db:
