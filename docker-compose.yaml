@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  rabbitmqServer:
+    container_name: rabbitmqServer
+    image: "rabbitmq:3.6-management-alpine"
+    hostname: "rabbitmq-host"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "admin"
+      RABBITMQ_DEFAULT_PASS: "pass"
+    networks:
+      - rabbitnetwork
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  modelcls_app:
+    build: modelcls
+    entrypoint: [ "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000" ]
+    env_file:
+      - .env
+    depends_on:
+      rabbitmqServer:
+        condition: "service_healthy"
+
+    ports:
+      - "8000:8000"
+    restart: always
+    networks:
+      - rabbitnetwork
+  modelcls_queues:
+    env_file:
+      - .env
+    build: modelcls
+    entrypoint: [ "python", "queues.py" ]
+    restart: always
+    depends_on:
+      rabbitmqServer:
+        condition: "service_healthy"
+      modelcls_app:
+        condition: "service_started"
+    networks:
+      - rabbitnetwork
+
+  platform_app:
+    environment:
+      IMAGE_FOLDER_PATH: './images_files'
+      DATABASE_URL: "sqlite:///./db/sql_app.db"
+    env_file:
+      - .env
+    build: platform_app
+    entrypoint: [ "python", "platform_app.py" ]
+    restart: always
+    depends_on:
+      rabbitmqServer:
+        condition: "service_healthy"
+      modelcls_app:
+        condition: "service_started"
+      modelcls_queues:
+        condition: "service_started"
+    networks:
+      - rabbitnetwork
+    volumes:
+      - ./platform_app/db/sql_app.db:/src/platform_app/db/sql_app.db
+
+networks:
+  rabbitnetwork:
+    driver: bridge
